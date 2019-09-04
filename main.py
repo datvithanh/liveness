@@ -63,7 +63,7 @@ class Trainer():
         setattr(self, 'dev_set', LoadDataset('dev', self.data_path, self.batch_size))
     
     def set_model(self):
-        self.model = CNN3D()
+        self.model = CNN3D().to(self.device)
         self.opt = torch.optim.Adam(self.model.parameters(), lr = 0.001, betas=[0.9, 0.99], weight_decay=0.00005)
         self.cross_entropy_loss = torch.nn.CrossEntropyLoss(reduce='mean')
 
