@@ -70,18 +70,20 @@ class Trainer():
     def train(self):
         #train
         while self.epoch < self.max_epoch: 
-
+            all_pred, all_true = [], []
             for X_batch, y_batch in self.train_set:
                 X_batch = X_batch.to(device = self.device,dtype=torch.float32)
+                print(y_batch)
                 input = self.model(X_batch)
 
                 self.opt.zero_grad()
 
                 loss = self.cross_entropy_loss(input, y_batch)
-                print(loss)
                 
                 loss.backward()
                 self.opt.step()
+
+            self.eval()
 
         #fine-tune
         self.epoch = 0
@@ -92,7 +94,10 @@ class Trainer():
 
     def valid(self):
         self.model.eval()
-        # evaluate code here 
+        # evaluate code here
+
+        for X_batch, y_batch in self.dev_set:
+            pass
 
         self.model.train()
         pass

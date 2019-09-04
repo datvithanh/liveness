@@ -33,7 +33,10 @@ class TrainingDataset(Dataset):
         # x = [[self.load_image(p) for p in tmp.split(',')[:8]] for tmp in self.X[index]]
         x = [self.load_image(tmp) for tmp in self.X[index].split(',')[:8]]
         x = np.array(x).transpose(3,0,1,2)
-        y = [y for y in self.Y[index]]
+        if self.Y[index].startswith('G'):
+            y = 0
+        else: 
+            y = 1
         return x, y 
 
     def __len__(self):
