@@ -5,10 +5,13 @@ from model import CNN3D
 import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataset import LoadDataset
+import math
 
-def load_image(path):
-    img_tmp = cv2.imread('1.jpg')
-    return cv2.resize(img_tmp,(int(128),int(128)))
+GRAD_CLIP = 5
+
+# def load_image(path):
+#     img_tmp = cv2.imread('1.jpg')
+#     return cv2.resize(img_tmp,(int(128),int(128)))
 
 # cnn = CNN3D()
 # print(cnn.parameters())
@@ -71,19 +74,33 @@ class Trainer():
         #train
         while self.epoch < self.max_epoch: 
             all_pred, all_true = [], []
+            all_loss = []
             for X_batch, y_batch in self.train_set:
                 X_batch = X_batch.to(device = self.device,dtype=torch.float32)
-                print(y_batch)
                 input = self.model(X_batch)
 
                 self.opt.zero_grad()
 
                 loss = self.cross_entropy_loss(input, y_batch)
-                
-                loss.backward()
-                self.opt.step()
+                all_pred += input
+                all_true += y_batch
+                all_loss += loss 
 
-            self.eval()
+                loss.backward()
+
+                grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), GRAD_CLIP)
+
+                if math.isnan(grad_norm):
+                    print('NaN')
+                else:
+                    self.opt.step()
+
+            # log
+            self.log.add_scalars('acc', {'train': 123}, self.epoch)
+            self.log.add_scalars('err', {'train': 123}, self.epoch)
+
+            # self.eval()
+            self.epoch += 1
 
         #fine-tune
         self.epoch = 0
