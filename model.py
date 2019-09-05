@@ -45,10 +45,10 @@ class CNN3D(nn.Module):
         X = self.max_pool5(F.leaky_relu(self.bn5(self.conv5(X)), 0.1))
 
         X = self.linear1(X.view(X.shape[0], -1))
-        X = self.bn6(X)
+        X = F.relu(self.bn6(X))
         X = self.dropout1(X)
         X = self.linear2(X)
-        return X
+        return F.log_softmax(X)
 
 
 
