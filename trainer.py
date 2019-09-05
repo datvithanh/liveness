@@ -61,6 +61,7 @@ class Trainer(Solver):
             for X_batch, y_batch in self.train_set:
                 self.progress('Training step - ' + str(step) + '/' + str(len(self.train_set)))
                 X_batch = X_batch.to(device = self.device,dtype=torch.float32)
+                y_batch = y_batch.to(device = self.device)
                 _, _, input = self.model(X_batch)
                 self.opt.zero_grad()
                 loss = self.cross_entropy_loss(input, y_batch)
@@ -85,7 +86,9 @@ class Trainer(Solver):
             self.log.add_scalars('acc', {'train': sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/ len(all_pred)}, self.epoch)
             self.log.add_scalars('loss', {'train': np.mean(all_loss)}, self.epoch)
 
-            # self.eval()
+            print(sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)]) / len(all_pred))
+            print(np.mean(all_loss))
+            self.valid()
             self.epoch += 1
 
     def valid(self):
@@ -97,6 +100,7 @@ class Trainer(Solver):
         for X_batch, y_batch in self.dev_set:
             self.progress('Valid step - ' + str(step) + '/' + str(len(self.train_set)))
             X_batch = X_batch.to(device = self.device,dtype=torch.float32)
+            y_batch = y_batch.to(device = self.device)
             _, _, input = self.model(X_batch)
             self.opt.zero_grad()
             loss = self.cross_entropy_loss(input, y_batch)
@@ -111,6 +115,8 @@ class Trainer(Solver):
 
         if np.mean(all_loss) < self.best_val:
             self.best_val = np.mean(all_loss)
+            if not os.path.exists('result'):
+                os.mkdir('result')
             torch.save(self.model, os.path.join('result','model_epoch' + str(self.epoch)))
         
         # log
