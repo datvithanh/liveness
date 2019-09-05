@@ -13,6 +13,7 @@ GRAD_CLIP = 5
 class Trainer():
     def __init__(self, data_path):
         self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        # TODO: move this to argument or config
         # self.device = torch.device('cpu')
         self.log = SummaryWriter('log')
         self.data_path = data_path
