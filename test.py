@@ -1,12 +1,8 @@
 import torch
+from torch.autograd import Variable
+import torch.nn.functional as F
+a = Variable(torch.randn(5,2))
 
-loss = torch.nn.CrossEntropyLoss()
-input = torch.randn(3, 5, requires_grad=True)
-target = torch.empty(3, dtype=torch.long).random_(5)
+print(a)
 
-print(input)
-print(target)
-print(torch.max(input, 1)[1].tolist())
-output = loss(input, target)
-print(output.tolist())
-output.backward()
+print(F.softmax(a, dim=0))

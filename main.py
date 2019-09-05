@@ -6,13 +6,14 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataset import LoadDataset
 import math
+import os
 
 GRAD_CLIP = 5
 
 class Trainer():
     def __init__(self, data_path):
-        # self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        self.device = torch.device('cpu')
+        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+        # self.device = torch.device('cpu')
         self.log = SummaryWriter('log')
         self.data_path = data_path
         self.batch_size = 8
@@ -51,7 +52,7 @@ class Trainer():
             all_loss = []
             step = 0
             for X_batch, y_batch in self.train_set:
-                self.progress('Training step - ' + str(step))
+                self.progress('Training step - ' + str(step) + '/' + str(len(self.train_set)))
                 X_batch = X_batch.to(device = self.device,dtype=torch.float32)
                 input = self.model(X_batch)
                 self.opt.zero_grad()
@@ -92,7 +93,7 @@ class Trainer():
         all_loss = []
         step = 0
         for X_batch, y_batch in self.dev_set:
-            self.progress('Valid step - ' + str(step))
+            self.progress('Valid step - ' + str(step) + '/' + str(len(self.train_set)))
             X_batch = X_batch.to(device = self.device,dtype=torch.float32)
             input = self.model(X_batch)
             self.opt.zero_grad()
@@ -108,6 +109,7 @@ class Trainer():
 
         if np.mean(all_loss) < self.best_val:
             self.best_val = np.mean(all_loss)
+            torch.save(self.model, os.path.join('result','model_epoch' + str(self.epoch)))
         
         # log
         self.log.add_scalars('acc', {'dev': sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/ len(all_pred)}, self.epoch)

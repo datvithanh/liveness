@@ -48,7 +48,7 @@ class CNN3D(nn.Module):
         X = F.relu(self.bn6(X))
         X = self.dropout1(X)
         X = self.linear2(X)
-        return F.log_softmax(X)
+        return F.log_softmax(X, dim=1)
 
 
 
