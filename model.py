@@ -46,6 +46,19 @@ class CNN3D(nn.Module):
         fc2 = self.fc2(X)
         logsoftmax = F.log_softmax(fc2, dim=1)
         return fc1, fc2, logsoftmax
+    
+    def freeze(self):
+        for param in self.conv1.parameters():
+            param.requires_grad = False
+
+        for param in self.conv2.parameters():
+            param.requires_grad = False
+        
+        for param in self.conv3.parameters():
+            param.requires_grad = False
+
+        for param in self.conv4.parameters():
+            param.requires_grad = False
 
 
 
