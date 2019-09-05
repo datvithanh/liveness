@@ -135,21 +135,25 @@ class Finetuner(Solver):
             all_pred, all_true = [], []
             all_loss = []
             step = 0
-            for X_batch, y_batch in self.train_set:
+            for X_batch, (y_batch, domain_batch) in self.train_set:
                 self.progress('Finetuning step - ' + str(step) + '/' + str(len(self.train_set)))
                 X_batch = X_batch.to(device = self.device,dtype=torch.float32)
                 _, _, input = self.model(X_batch)
                 self.opt.zero_grad()
                 
                 cross_entropy_loss = self.cross_entropy_loss(input, y_batch)
-                generalization_loss = self.
+                generalization_loss = 0
 
                 pred = torch.max(input, 1)[1]
 
                 all_pred += pred.tolist()
                 all_true += y_batch.tolist()
                 all_loss.append(loss.tolist())
-            
+
+                lbd = 0.44
+
+                loss = cross_entropy_loss + lbd*generalization_loss
+
                 loss.backward()
 
                 grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), GRAD_CLIP)
