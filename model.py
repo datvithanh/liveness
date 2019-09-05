@@ -40,11 +40,12 @@ class CNN3D(nn.Module):
 
         X = self.conv5(X)
 
-        X = self.fc1(X.view(X.shape[0], -1))
-        X = F.relu(self.bn6(X))
+        fc1 = self.fc1(X.view(X.shape[0], -1))
+        X = F.relu(self.bn6(fc1))
         X = self.dropout1(X)
-        X = self.fc2(X)
-        return F.log_softmax(X, dim=1)
+        fc2 = self.fc2(X)
+        logsoftmax = F.log_softmax(fc2, dim=1)
+        return fc1, fc2, logsoftmax
 
 
 

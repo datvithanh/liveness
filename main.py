@@ -55,7 +55,7 @@ class Trainer():
             for X_batch, y_batch in self.train_set:
                 self.progress('Training step - ' + str(step) + '/' + str(len(self.train_set)))
                 X_batch = X_batch.to(device = self.device,dtype=torch.float32)
-                input = self.model(X_batch)
+                _, _, input = self.model(X_batch)
                 self.opt.zero_grad()
                 loss = self.cross_entropy_loss(input, y_batch)
                 pred = torch.max(input, 1)[1]
@@ -96,7 +96,7 @@ class Trainer():
         for X_batch, y_batch in self.dev_set:
             self.progress('Valid step - ' + str(step) + '/' + str(len(self.train_set)))
             X_batch = X_batch.to(device = self.device,dtype=torch.float32)
-            input = self.model(X_batch)
+            _, _, input = self.model(X_batch)
             self.opt.zero_grad()
             loss = self.cross_entropy_loss(input, y_batch)
 
