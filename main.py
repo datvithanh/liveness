@@ -13,7 +13,7 @@ if param.finetuning:
     trainer = Finetuner(param.data_path, param.model_path)
     trainer.load_data()
     trainer.set_model()
-    trainer.train()
+    trainer.finetune()
 else:    
     trainer = Trainer(param.data_path)
     trainer.load_data()

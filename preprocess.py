@@ -1,7 +1,7 @@
 import os
 import argparse
 import pandas as pd
-
+from tqdm import tqdm
 parser = argparse.ArgumentParser(description='Preprocess program for the dataset.')
 parser.add_argument('--data_path', type=str, help='Path to the dataset')
 
@@ -11,8 +11,10 @@ root = params.data_path
 
 images = []
 labels = []
-for fn in os.listdir(root):
-    for data_point in os.listdir(os.path.join(root, fn)):
+train_subjects = ['2','3','4','5','6','7','9','10','11','12']
+for fn in [tmp for tmp in os.listdir(root) if tmp in train_subjects]:
+    print(fn)
+    for data_point in tqdm(os.listdir(os.path.join(root, fn))):
         image_fns = sorted(os.listdir(os.path.join(root, fn, data_point)))
         if len(image_fns) < 8:
             continue
@@ -23,7 +25,7 @@ for fn in os.listdir(root):
 if not os.path.exists('data'):
     os.mkdir('data')
 
-train_size = len(images) - len(images)//20
+train_size = len(images) - len(images)//10
 
 train = pd.DataFrame.from_dict({'image': images[:train_size],'label': labels[:train_size]})
 

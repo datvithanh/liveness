@@ -12,8 +12,9 @@ GRAD_CLIP = 5
 
 class Solver():
     def __init__(self):
-        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-    
+        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu') 
+        self.log = SummaryWriter('log')
+
     def verbose(self,msg):
         print('[INFO]',msg)
 
@@ -27,9 +28,8 @@ class Trainer(Solver):
         # self.device = torch.device('cpu')
         super(Trainer, self).__init__()
 
-        self.log = SummaryWriter('log')
         self.data_path = data_path
-        self.batch_size = 8
+        self.batch_size = 16
 
         self.epoch = 0
         self.best_val = 1e6
@@ -130,8 +130,9 @@ class Finetuner(Solver):
         self.data_path = data_path
         self.model_path = model_path 
 
+        self.best_val = 20.0
         self.max_epoch = 20
-        self.batch_size = 100
+        self.batch_size = 30
         self.domains = ['G', 'Ps', 'Pq', 'Vl', 'Vm', 'Mc', 'Mf', 'Mu', 'Ml']
         self.num_domains = len(self.domains)
         self.lmda = 0.5
@@ -142,7 +143,7 @@ class Finetuner(Solver):
         setattr(self, 'dev_set', LoadDataset('dev', self.data_path, self.batch_size))
 
 
-    def set_model(self, model_path):
+    def set_model(self):
         self.model = torch.load(self.model_path)
         self.opt = torch.optim.Adam(self.model.parameters(), lr = 0.0001, betas=[0.9, 0.99], weight_decay=0.00005)
         self.cross_entropy_loss = torch.nn.CrossEntropyLoss(reduce='mean')
@@ -150,7 +151,7 @@ class Finetuner(Solver):
     def generalization_loss(self, fc, domain_tensor):
         domain_vector = domain_tensor.tolist()
 
-        c = [0] * 20
+        c = [0] * self.batch_size
         cnt = 0 
         for do in range(self.num_domains):
             for i,v in enumerate(domain_vector):
@@ -181,7 +182,7 @@ class Finetuner(Solver):
                 else:
                     Q = np.vstack((Q, row))
 
-        Q = torch.from_numpy(Q)
+        Q = torch.from_numpy(Q).to(device = self.device, dtype=torch.float)
         K = torch.mm(torch.mm(Ym, Ym.t()), Q)
 
         return torch.trace(K)
@@ -198,6 +199,7 @@ class Finetuner(Solver):
             for X_batch, y_batch, domain_batch in self.train_set:
                 self.progress('Finetuning step - ' + str(step) + '/' + str(len(self.train_set)))
                 X_batch = X_batch.to(device = self.device,dtype=torch.float32)
+                y_batch = y_batch.to(device = self.device)
                 fc1, fc2, input = self.model(X_batch)
                 self.opt.zero_grad()
                 
@@ -235,6 +237,7 @@ class Finetuner(Solver):
 
 
             # self.eval()
+            self.valid()
             self.epoch += 1
 
     def valid(self):
@@ -246,6 +249,7 @@ class Finetuner(Solver):
         for X_batch, y_batch, domain_batch in self.dev_set:
             self.progress('Valid step - ' + str(step) + '/' + str(len(self.train_set)))
             X_batch = X_batch.to(device = self.device,dtype=torch.float32)
+            y_batch = y_batch.to(device = self.device)
             fc1, fc2, input = self.model(X_batch)
             self.opt.zero_grad()
             
@@ -268,8 +272,8 @@ class Finetuner(Solver):
         if np.mean(all_loss) < self.best_val:
             self.best_val = np.mean(all_loss)
             if not os.path.exists('result'):
-                os.mkdir('result/init')
-            torch.save(self.model, os.path.join('result/init','model_epoch' + str(self.epoch)))
+                os.mkdir('result/final')
+            torch.save(self.model, os.path.join('result/final','model_epoch' + str(self.epoch)))
         
         # log
         self.log.add_scalars('acc-finetune', {'dev': sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/ len(all_pred)}, self.epoch)
