@@ -4,3 +4,4 @@ data
 *.pyc
 images
 result
+log
