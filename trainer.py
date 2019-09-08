@@ -29,7 +29,7 @@ class Trainer(Solver):
         super(Trainer, self).__init__()
 
         self.data_path = data_path
-        self.batch_size = 10
+        self.batch_size = 16
 
         self.epoch = 0
         self.best_val = 1e6
@@ -85,6 +85,8 @@ class Trainer(Solver):
             self.log.add_scalars('acc', {'train': sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/ len(all_pred)}, self.epoch)
             self.log.add_scalars('loss', {'train': np.mean(all_loss)}, self.epoch)
 
+            print(sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)]) / len(all_pred))
+            print(np.mean(all_loss))
             self.valid()
             self.epoch += 1
 
@@ -95,7 +97,7 @@ class Trainer(Solver):
         all_loss = []
         step = 0
         for X_batch, y_batch, _ in self.dev_set:
-            self.progress('Valid step - ' + str(step) + '/' + str(len(self.dev_set)))
+            self.progress('Valid step - ' + str(step) + '/' + str(len(self.train_set)))
             X_batch = X_batch.to(device = self.device,dtype=torch.float32)
             y_batch = y_batch.to(device = self.device)
             _, _, input = self.model(X_batch)
@@ -113,15 +115,12 @@ class Trainer(Solver):
         if np.mean(all_loss) < self.best_val:
             self.best_val = np.mean(all_loss)
             if not os.path.exists('result'):
-                os.mkdir('result')
                 os.mkdir('result/init')
             torch.save(self.model, os.path.join('result/init','model_epoch' + str(self.epoch)))
         
         # log
         self.log.add_scalars('acc', {'dev': sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/ len(all_pred)}, self.epoch)
         self.log.add_scalars('loss', {'dev': np.mean(all_loss)}, self.epoch)
-        print('')
-        print(np.mean(all_loss))
 
         self.model.train()
 
@@ -248,7 +247,7 @@ class Finetuner(Solver):
         all_loss, all_cross_entropy_loss, all_generalization_loss = [], [], [] 
         step = 0
         for X_batch, y_batch, domain_batch in self.dev_set:
-            self.progress('Valid step - ' + str(step) + '/' + str(len(self.dev_set)))
+            self.progress('Valid step - ' + str(step) + '/' + str(len(self.train_set)))
             X_batch = X_batch.to(device = self.device,dtype=torch.float32)
             y_batch = y_batch.to(device = self.device)
             fc1, fc2, input = self.model(X_batch)
@@ -273,7 +272,6 @@ class Finetuner(Solver):
         if np.mean(all_loss) < self.best_val:
             self.best_val = np.mean(all_loss)
             if not os.path.exists('result'):
-                os.mkdir('result')
                 os.mkdir('result/final')
             torch.save(self.model, os.path.join('result/final','model_epoch' + str(self.epoch)))
         
@@ -285,3 +283,43 @@ class Finetuner(Solver):
 
         self.model.train()
 
+
+
+class Tester(Solver):
+    def __init__(self, data_path, model_path):
+        super(Tester, self).__init__()
+        self.data_path = data_path
+        self.model_path = model_path 
+
+        self.batch_size = 30
+
+    def load_data(self):
+        self.verbose('Load data from: ' + self.data_path)
+        setattr(self, 'test_set', LoadDataset('test_set', self.data_path, self.batch_size))
+
+    def set_model(self):
+        self.model = torch.load(self.model_path) 
+    
+    def test(self):
+        self.model.eval()
+        # evaluate code here
+        all_pred, all_true = [], []
+        step = 0
+        for X_batch, y_batch, _ in self.test_set:
+            self.progress('Test step - ' + str(step) + '/' + str(len(self.test_set)))
+            X_batch = X_batch.to(device = self.device,dtype=torch.float32)
+            y_batch = y_batch.to(device = self.device)
+            fc1, fc2, input = self.model(X_batch)
+            
+            pred = torch.max(input, 1)[1]
+            
+            all_pred += pred.tolist()
+            all_true += y_batch.tolist()
+
+            step += 1
+        
+        print(sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/len(all_pred))
+
+        npar = np.array([all_pred, all_true])
+
+        np.save('result/test.npy', npar)
