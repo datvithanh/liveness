@@ -4,6 +4,9 @@ data
 *.swn
 *.swo
 *.pyc
+<<<<<<< HEAD
+*.npy
+.ipynb_checkpoints/
 images
 result
 log
