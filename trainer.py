@@ -309,60 +309,35 @@ class Tester(Solver):
         # evaluate code here
         all_pred, all_true = [], []
         all_fc1, all_fc2 = [], []
-        step = 0
+
         if self.extract_feature:
-            for X_batch, y_batch, _ in self.train_set:
-                self.progress('Test train step - ' + str(step) + '/' + str(len(self.test_set)))
-                X_batch = X_batch.to(device = self.device,dtype=torch.float32)
-                y_batch = y_batch.to(device = self.device)
-                fc1, fc2, input = self.model(X_batch)
-                
-                pred = torch.max(input, 1)[1]
-                
-                all_fc1 += fc1.tolist()
-                all_fc2 += fc1.tolist()
-                all_pred += pred.tolist()
-                all_true += y_batch.tolist()
-
-                step += 1
-
-            for X_batch, y_batch, _ in self.test_set:
-                self.progress('Test valid step - ' + str(step) + '/' + str(len(self.test_set)))
-                X_batch = X_batch.to(device = self.device,dtype=torch.float32)
-                y_batch = y_batch.to(device = self.device)
-                fc1, fc2, input = self.model(X_batch)
-                
-                pred = torch.max(input, 1)[1]
-                
-                all_fc1 += fc1.tolist()
-                all_fc2 += fc1.tolist()
-                all_pred += pred.tolist()
-                all_true += y_batch.tolist()
-
-                step += 1
-
-        for X_batch, y_batch, _ in self.test_set:
-            self.progress('Test test step - ' + str(step) + '/' + str(len(self.test_set)))
-            X_batch = X_batch.to(device = self.device,dtype=torch.float32)
-            y_batch = y_batch.to(device = self.device)
-            fc1, fc2, input = self.model(X_batch)
-            
-            pred = torch.max(input, 1)[1]
-            
-            all_fc1 += fc1.tolist()
-            all_fc2 += fc1.tolist()
-            all_pred += pred.tolist()
-            all_true += y_batch.tolist()
-
-            step += 1
+            dsets = ['train_set', 'dev_set', 'test_set']
+        else:
+            dsets = ['test_set']
         
-        print(sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/len(all_pred))
+        for dataset in dsets:
+            step = 0
+            for X_batch, y_batch, _ in getattr(self, dataset):
+                self.progress(f'Test {dataset} step - {str(step)}/{str(len(getattr(self,dataset)))}')
+                
+                X_batch = X_batch.to(device = self.device,dtype=torch.float32)
+                y_batch = y_batch.to(device = self.device)
+                fc1, fc2, input = self.model(X_batch)
+                
+                pred = torch.max(input, 1)[1]
+                
+                all_fc1 += fc1.tolist()
+                all_fc2 += fc1.tolist()
+                all_pred += pred.tolist()
+                all_true += y_batch.tolist()
 
+                step += 1
+        
+        # print(sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/len(all_pred))
         if self.extract_feature:
             npar = np.array([all_fc1, all_fc2, all_true])
             np.save('result/extract.npy', npar)
-            
+
         else:
             npar = np.array([all_pred, all_true])
-
             np.save('result/test.npy', npar)
