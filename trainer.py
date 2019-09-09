@@ -133,7 +133,8 @@ class Finetuner(Solver):
         self.best_val = 20.0
         self.max_epoch = 20
         self.batch_size = 30
-        self.domains = ['G', 'Ps', 'Pq', 'Vl', 'Vm', 'Mc', 'Mf', 'Mu', 'Ml']
+
+        self.domains = ['HS', 'HW', 'IP', '5s', 'ZTE']
         self.num_domains = len(self.domains)
         self.lmda = 0.5
 
@@ -196,35 +197,50 @@ class Finetuner(Solver):
             all_pred, all_true = [], []
             all_loss, all_cross_entropy_loss, all_generalization_loss = [], [], []
             step = 0
+
+            fc1_tensor_all, fc2_tensor_all, input_tensor_all, domain_tensor_all, y_tensor_all = [], [], [], [], []
+
             for X_batch, y_batch, domain_batch in self.train_set:
                 self.progress('Finetuning step - ' + str(step) + '/' + str(len(self.train_set)))
                 X_batch = X_batch.to(device = self.device,dtype=torch.float32)
                 y_batch = y_batch.to(device = self.device)
                 fc1, fc2, input = self.model(X_batch)
-                self.opt.zero_grad()
-                
-                cross_entropy_loss = self.cross_entropy_loss(input, y_batch)
-                generalization_loss_fc1 = self.generalization_loss(fc1, domain_batch)
-                generalization_loss_fc2 = self.generalization_loss(fc2, domain_batch)
+            
+                fc1_tensor_all.append(fc1)
+                fc2_tensor_all.append(fc2)
+                domain_tensor_all.append(domain_batch) 
+                input_tensor_all.append(input)
+                y_tensor_all.append(y_batch)
 
                 pred = torch.max(input, 1)[1]
 
-                loss = cross_entropy_loss + self.lmda*(generalization_loss_fc1 + generalization_loss_fc2)
-                
                 all_pred += pred.tolist()
                 all_true += y_batch.tolist()
-                all_cross_entropy_loss.append(cross_entropy_loss.tolist())
-                all_generalization_loss.append(generalization_loss_fc1.tolist() + generalization_loss_fc2.tolist())
-                all_loss.append(loss.tolist())
-                
-                loss.backward()
 
-                grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), GRAD_CLIP)
+                if len(fc1_tensor_all) == 50:
+                    cross_entropy_loss = self.cross_entropy_loss(torch.cat(input_tensor_all, dim = 0), torch.cat(y_tensor_all, dim = 0))
+                    generalization_loss_fc1 = self.generalization_loss(torch.cat(fc1_tensor_all, dim = 0), torch.cat(domain_tensor_all, dim = 0))
+                    generalization_loss_fc2 = self.generalization_loss(torch.cat(fc2_tensor_all, dim = 0), torch.cat(domain_tensor_all, dim = 0))
 
-                if math.isnan(grad_norm):
-                    print('NaN')
-                else:
-                    self.opt.step()
+                    self.opt.zero_grad()
+
+                    loss = cross_entropy_loss + self.lmda*(generalization_loss_fc1 + generalization_loss_fc2)
+                    
+                    
+                    all_cross_entropy_loss.append(cross_entropy_loss.tolist())
+                    all_generalization_loss.append(generalization_loss_fc1.tolist() + generalization_loss_fc2.tolist())
+                    all_loss.append(loss.tolist())
+                    
+                    loss.backward()
+
+                    grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), GRAD_CLIP)
+
+                    if math.isnan(grad_norm):
+                        print('NaN')
+                    else:
+                        self.opt.step()
+
+                    fc1_tensor_all, fc2_tensor_all, input_tensor_all, domain_tensor_all, y_tensor_all = [], [], [], [], []
 
                 step += 1
 
@@ -244,28 +260,42 @@ class Finetuner(Solver):
         self.model.eval()
         # evaluate code here
         all_pred, all_true = [], []
-        all_loss, all_cross_entropy_loss, all_generalization_loss = [], [], [] 
+        all_loss, all_cross_entropy_loss, all_generalization_loss = [], [], []
+        fc1_tensor_all, fc2_tensor_all, input_tensor_all, domain_tensor_all, y_tensor_all = [], [], [], [], []
         step = 0
+
         for X_batch, y_batch, domain_batch in self.dev_set:
             self.progress('Valid step - ' + str(step) + '/' + str(len(self.train_set)))
             X_batch = X_batch.to(device = self.device,dtype=torch.float32)
             y_batch = y_batch.to(device = self.device)
             fc1, fc2, input = self.model(X_batch)
-            self.opt.zero_grad()
-            
-            cross_entropy_loss = self.cross_entropy_loss(input, y_batch)
-            generalization_loss_fc1 = self.generalization_loss(fc1, domain_batch)
-            generalization_loss_fc2 = self.generalization_loss(fc2, domain_batch)
+        
+            fc1_tensor_all.append(fc1)
+            fc2_tensor_all.append(fc2)
+            domain_tensor_all.append(domain_batch) 
+            input_tensor_all.append(input)
+            y_tensor_all.append(y_batch)
 
             pred = torch.max(input, 1)[1]
 
-            loss = cross_entropy_loss + self.lmda*(generalization_loss_fc1 + generalization_loss_fc2)
-            
             all_pred += pred.tolist()
             all_true += y_batch.tolist()
-            all_cross_entropy_loss.append(cross_entropy_loss.tolist())
-            all_generalization_loss.append(generalization_loss_fc1.tolist() + generalization_loss_fc2.tolist())
-            all_loss.append(loss.tolist())
+
+            if len(fc1_tensor_all) == 50:
+                cross_entropy_loss = self.cross_entropy_loss(torch.cat(input_tensor_all, dim = 0), torch.cat(y_tensor_all, dim = 0))
+                generalization_loss_fc1 = self.generalization_loss(torch.cat(fc1_tensor_all, dim = 0), torch.cat(domain_tensor_all, dim = 0))
+                generalization_loss_fc2 = self.generalization_loss(torch.cat(fc2_tensor_all, dim = 0), torch.cat(domain_tensor_all, dim = 0))
+
+                self.opt.zero_grad()
+
+                loss = cross_entropy_loss + self.lmda*(generalization_loss_fc1 + generalization_loss_fc2)
+                
+                
+                all_cross_entropy_loss.append(cross_entropy_loss.tolist())
+                all_generalization_loss.append(generalization_loss_fc1.tolist() + generalization_loss_fc2.tolist())
+                all_loss.append(loss.tolist())
+                
+                fc1_tensor_all, fc2_tensor_all, input_tensor_all, domain_tensor_all, y_tensor_all = [], [], [], [], []
 
             step += 1
 
@@ -319,7 +349,7 @@ class Tester(Solver):
             step = 0
             for X_batch, y_batch, _ in getattr(self, dataset):
                 self.progress(f'Test {dataset} step - {str(step)}/{str(len(getattr(self,dataset)))}')
-                
+
                 X_batch = X_batch.to(device = self.device,dtype=torch.float32)
                 y_batch = y_batch.to(device = self.device)
                 fc1, fc2, input = self.model(X_batch)

@@ -26,14 +26,14 @@ class TrainingDataset(Dataset):
         x = [self.load_image(tmp) for tmp in self.X[index].split(',')[:8]]
         x = np.array(x).transpose(3,0,1,2)
 
-        domains = ['G', 'Ps', 'Pq', 'Vl', 'Vm', 'Mc', 'Mf', 'Mu', 'Ml']
+        domains = ['HS', 'HW', 'IP', '5s', 'ZTE']
         if self.Y[index].startswith('G'):
             y = 0
         else: 
             y = 1
 
         for ind, domain in enumerate(domains):
-            if self.Y[index].startswith(domain):
+            if self.Y[index].split('_')[2] == domain:
                 z = ind
         return x, y, z
 
