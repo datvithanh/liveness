@@ -360,6 +360,8 @@ class Tester(Solver):
 
         if self.extract_feature:
             npar = np.array([all_fc1, all_fc2, all_true])
+            np.save('result/extract.npy', npar)
+            
         else:
             npar = np.array([all_pred, all_true])
 
