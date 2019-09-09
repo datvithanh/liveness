@@ -50,7 +50,7 @@ class Trainer(Solver):
     def write_log(self, val_name, val_dict):
         self.log.add_text(val_name, val_dict, self.epoch)
     
-    def train(self):
+    def exec(self):
         #train
         while self.epoch < self.max_epoch: 
             self.verbose('Training epoch: ' + str(self.epoch))
@@ -187,7 +187,7 @@ class Finetuner(Solver):
 
         return torch.trace(K)
 
-    def finetune(self):
+    def exec(self):
         self.model.freeze()
         self.epoch = 0
 
@@ -286,33 +286,71 @@ class Finetuner(Solver):
 
 
 class Tester(Solver):
-    def __init__(self, data_path, model_path):
+    def __init__(self, data_path, model_path, extract_feature=False):
         super(Tester, self).__init__()
         self.data_path = data_path
         self.model_path = model_path 
+        self.extract_feature = extract_feature
 
         self.batch_size = 10
 
     def load_data(self):
         self.verbose('Load data from: ' + self.data_path)
         setattr(self, 'test_set', LoadDataset('test', self.data_path, self.batch_size))
+        if self.extract_feature:
+            setattr(self, 'train_set', LoadDataset('train', self.data_path, self.batch_size))
+            setattr(self, 'dev_set', LoadDataset('dev', self.data_path, self.batch_size))
 
     def set_model(self):
         self.model = torch.load(self.model_path) 
     
-    def test(self):
+    def exec(self):
         self.model.eval()
         # evaluate code here
         all_pred, all_true = [], []
+        all_fc1, all_fc2 = [], []
         step = 0
+        if self.extract_feature:
+            for X_batch, y_batch, _ in self.train_set:
+                self.progress('Test train step - ' + str(step) + '/' + str(len(self.test_set)))
+                X_batch = X_batch.to(device = self.device,dtype=torch.float32)
+                y_batch = y_batch.to(device = self.device)
+                fc1, fc2, input = self.model(X_batch)
+                
+                pred = torch.max(input, 1)[1]
+                
+                all_fc1 += fc1.tolist()
+                all_fc2 += fc1.tolist()
+                all_pred += pred.tolist()
+                all_true += y_batch.tolist()
+
+                step += 1
+
+            for X_batch, y_batch, _ in self.test_set:
+                self.progress('Test valid step - ' + str(step) + '/' + str(len(self.test_set)))
+                X_batch = X_batch.to(device = self.device,dtype=torch.float32)
+                y_batch = y_batch.to(device = self.device)
+                fc1, fc2, input = self.model(X_batch)
+                
+                pred = torch.max(input, 1)[1]
+                
+                all_fc1 += fc1.tolist()
+                all_fc2 += fc1.tolist()
+                all_pred += pred.tolist()
+                all_true += y_batch.tolist()
+
+                step += 1
+
         for X_batch, y_batch, _ in self.test_set:
-            self.progress('Test step - ' + str(step) + '/' + str(len(self.test_set)))
+            self.progress('Test test step - ' + str(step) + '/' + str(len(self.test_set)))
             X_batch = X_batch.to(device = self.device,dtype=torch.float32)
             y_batch = y_batch.to(device = self.device)
             fc1, fc2, input = self.model(X_batch)
             
             pred = torch.max(input, 1)[1]
             
+            all_fc1 += fc1.tolist()
+            all_fc2 += fc1.tolist()
             all_pred += pred.tolist()
             all_true += y_batch.tolist()
 
@@ -320,6 +358,9 @@ class Tester(Solver):
         
         print(sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/len(all_pred))
 
-        npar = np.array([all_pred, all_true])
+        if self.extract_feature:
+            npar = np.array([all_fc1, all_fc2, all_true])
+        else:
+            npar = np.array([all_pred, all_true])
 
-        np.save('result/test.npy', npar)
+            np.save('result/test.npy', npar)
