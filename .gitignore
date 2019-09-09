@@ -3,3 +3,4 @@ data
 *.swp
 *.pyc
 *.npy
+.ipynb_checkpoints/
