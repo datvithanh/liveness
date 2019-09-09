@@ -12,7 +12,7 @@ if param.mode == 'test':
     trainer = Tester(param.data_path, param.model_path)
     trainer.load_data()
     trainer.set_model()
-    trainer.finetune()
+    trainer.test()
 else:
     if param.mode == 'finetuning':
         trainer = Finetuner(param.data_path, param.model_path)

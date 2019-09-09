@@ -291,11 +291,11 @@ class Tester(Solver):
         self.data_path = data_path
         self.model_path = model_path 
 
-        self.batch_size = 30
+        self.batch_size = 10
 
     def load_data(self):
         self.verbose('Load data from: ' + self.data_path)
-        setattr(self, 'test_set', LoadDataset('test_set', self.data_path, self.batch_size))
+        setattr(self, 'test_set', LoadDataset('test', self.data_path, self.batch_size))
 
     def set_model(self):
         self.model = torch.load(self.model_path) 
