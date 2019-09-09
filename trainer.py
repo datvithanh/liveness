@@ -357,7 +357,7 @@ class Tester(Solver):
                 pred = torch.max(input, 1)[1]
                 
                 all_fc1 += fc1.tolist()
-                all_fc2 += fc1.tolist()
+                all_fc2 += fc2.tolist()
                 all_pred += pred.tolist()
                 all_true += y_batch.tolist()
 
@@ -365,8 +365,9 @@ class Tester(Solver):
         
         # print(sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/len(all_pred))
         if self.extract_feature:
-            npar = np.array([all_fc1, all_fc2, all_true])
-            np.save('result/extract.npy', npar)
+            import pickle
+            with open('extract.pkl', 'wb') as f:
+                pickle.dump({'fc1': all_fc1, 'fc2': all_fc2, 'all_true': all_true}, f)
 
         else:
             npar = np.array([all_pred, all_true])
