@@ -7,21 +7,21 @@ parser.add_argument('--data_path', type=str, help='Path to dataset')
 parser.add_argument('--mode', type=str, help='Finetuning for not')
 parser.add_argument('--extract_feature', action='store_true', help='extract feature on test mode')
 parser.add_argument('--model_path', type=str, default='', help='Path to trained model')
-param = parser.parse_args()
+params = parser.parse_args()
 
-if param.mode == 'test':
-    trainer = Tester(param.data_path, param.model_path, )
+if params.mode == 'test':
+    trainer = Tester(params.data_path, params.model_path, params.extract_feature)
     trainer.load_data()
     trainer.set_model()
     trainer.exec()
 else:
-    if param.mode == 'finetuning':
-        trainer = Finetuner(param.data_path, param.model_path)
+    if params.mode == 'finetuning':
+        trainer = Finetuner(params.data_path, params.model_path)
         trainer.load_data()
         trainer.set_model()
         trainer.exec()
     else:    
-        trainer = Trainer(param.data_path)
+        trainer = Trainer(params.data_path)
         trainer.load_data()
         trainer.set_model()
         trainer.exec()
