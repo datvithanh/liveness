@@ -11,8 +11,11 @@ import os
 GRAD_CLIP = 5
 
 class Solver():
-    def __init__(self):
-        self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu') 
+    def __init__(self, gpu = True):
+        if gpu:
+            self.device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu') 
+        else: 
+            self.device = torch.device('cpu')
         self.log = SummaryWriter('log')
 
     def verbose(self,msg):
@@ -23,10 +26,12 @@ class Solver():
 
 
 class Trainer(Solver):
-    def __init__(self, data_path):
+    def __init__(self, data_path, model_path='', gpu = True):
         # TODO: move this to argument or config
         # self.device = torch.device('cpu')
-        super(Trainer, self).__init__()
+        super(Trainer, self).__init__(gpu)
+
+        self.model_path = model_path
 
         self.data_path = data_path
         self.batch_size = 16
@@ -43,13 +48,22 @@ class Trainer(Solver):
         setattr(self, 'dev_set', LoadDataset('dev', self.data_path, self.batch_size))
     
     def set_model(self):
-        self.model = CNN3D().to(self.device)
+        if self.model_path:
+            self.model = torch.load(self.model_path).to(self.device)
+        else:    
+            self.model = CNN3D().to(self.device)
         self.opt = torch.optim.Adam(self.model.parameters(), lr = 0.001, betas=[0.9, 0.99], weight_decay=0.00005)
         self.cross_entropy_loss = torch.nn.CrossEntropyLoss(reduce='mean')
 
     def write_log(self, val_name, val_dict):
         self.log.add_text(val_name, val_dict, self.epoch)
     
+    def predict(self, X):
+        X = X.to(device = self.device,dtype=torch.float32)
+        _, _, input = self.model(X)
+        pred = torch.max(input, 1)[1]
+        return pred.tolist()
+
     def exec(self):
         #train
         while self.epoch < self.max_epoch: 

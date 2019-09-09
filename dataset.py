@@ -1,10 +1,10 @@
-import os
-import cv2 
+import os 
 from torch.utils.data.dataset import Dataset
 from torch.utils.data import DataLoader
 import pandas as pd
 import torch
 import numpy as np
+from utils import load_image
 
 class TrainingDataset(Dataset):
     def __init__(self, file_path, dataset):
@@ -17,13 +17,8 @@ class TrainingDataset(Dataset):
         self.X = X
         self.Y = Y
     
-    def load_image(self, path):
-        tmp = cv2.imread(path)
-        return cv2.resize(tmp, (int(128), int(128)))
-    
     def __getitem__(self, index):
-        # x = [[self.load_image(p) for p in tmp.split(',')[:8]] for tmp in self.X[index]]
-        x = [self.load_image(tmp) for tmp in self.X[index].split(',')[:8]]
+        x = [load_image(tmp) for tmp in self.X[index].split(',')[:8]]
         x = np.array(x).transpose(3,0,1,2)
 
         domains = ['HS', 'HW', 'IP', '5s', 'ZTE']
