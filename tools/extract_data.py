@@ -6,7 +6,7 @@ from tqdm import tqdm
 import imutils
 import numpy as np
 import shutil
-from face_detection.face_detection import detect_face_and_rotate, to_rgb
+from tools.face_detection.face_detection import detect_face_and_rotate, to_rgb
 import pdb
 
 data_dir = '/home/common_gpu0/corpora/vision/liveness/rose/videos/'

@@ -3,7 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
-import face_detection.align.detect_face as mtcnn
+import tools.face_detection.align.detect_face as mtcnn
 import numpy as np
 import os
 import imutils
