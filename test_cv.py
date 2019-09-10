@@ -1,6 +1,10 @@
 import numpy as np
 import cv2
-from utils import 
+from trainer import Trainer
+
+gpu = True
+model_path = 'result/init/model_epoch40'
+trainer = Trainer('data', model_path, gpu)
 
 cap = cv2.VideoCapture(0)
 
