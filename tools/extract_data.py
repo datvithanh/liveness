@@ -9,9 +9,11 @@ import shutil
 from tools.face_detection.face_detection import detect_face_and_rotate, to_rgb
 import pdb
 
-data_dir = '/home/common_gpu0/corpora/vision/liveness/rose/videos/'
-out_dir = '/home/common_gpu0/corpora/vision/liveness/rose/images/'
+#data_dir = '/home/common_gpu0/corpora/vision/liveness/rose/videos/'
+data_dir = '/home/datvt/Videos/'
+#out_dir = '/home/common_gpu0/corpora/vision/liveness/rose/images/'
 #out_dir = '/home/common_gpu0/corpora/vision/liveness/rose/images_not_expanded/'
+out_dir = '/home/datvt/live_examples/'
 miss_dir = '/home/common_gpu0/corpora/vision/liveness/rose/miss/'
 debug = False
 example_duration = 3.0 #second
@@ -145,9 +147,11 @@ def read_forced_videos():
         return ret_videos
 
 def extract_dir():
-    #processed_videos = []
-    processed_videos = read_processed_videos()
-    forced_videos = read_forced_videos()
+    processed_videos = []
+    #processed_videos = read_processed_videos()
+    forced_videos = []
+    #forced_videos = read_forced_videos()
+    #pdb.set_trace()
     for sub in glob.glob(os.path.join(data_dir, '*')):
         sub_name = os.path.basename(sub)
         #if sub_name in ['15', '17']:#not save in the processed file, if rerun then remove this code
@@ -284,9 +288,9 @@ def augument_gamma():
                 write_frame(gam2_img, os.path.join(gam2_path, img_name))
 
 if __name__ == '__main__':
-    #extract_dir()
+    extract_dir()
     #del_gamma()
-    augument_gamma()
+    #augument_gamma()
 
 #TODO 
 
