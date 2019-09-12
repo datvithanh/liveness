@@ -146,7 +146,7 @@ class Finetuner(Solver):
 
         self.best_val = 20.0
         self.max_epoch = 20
-        self.batch_size = 30
+        self.batch_size = 10
 
         self.domains = ['HS', 'HW', 'IP', '5s', 'ZTE']
         self.num_domains = len(self.domains)
@@ -166,7 +166,7 @@ class Finetuner(Solver):
     def generalization_loss(self, fc, domain_tensor):
         domain_vector = domain_tensor.tolist()
 
-        c = [0] * self.batch_size
+        c = [0] * len(domain_vector)
         cnt = 0 
         for do in range(self.num_domains):
             for i,v in enumerate(domain_vector):
@@ -264,8 +264,10 @@ class Finetuner(Solver):
             self.log.add_scalars('loss-finetune', {'train-cel': np.mean(all_cross_entropy_loss)}, self.epoch)
             self.log.add_scalars('loss-finetune', {'train-gen': np.mean(all_generalization_loss)}, self.epoch)
 
-
-
+            print('')
+            print('all', np.mean(all_loss))
+            print('gen', np.mean(all_generalization_loss))
+            print('cel', np.mean(all_cross_entropy_loss))
             # self.eval()
             self.valid()
             self.epoch += 1

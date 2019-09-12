@@ -7,8 +7,8 @@ import pandas as pd
 import cv2 
 import os
 from tqdm import tqdm
-
-gpu = True
+import time 
+gpu = False
 
 model_path = '/home/datvt/liveness/result/init/model_epoch40'
 trainer = Trainer('data', model_path, gpu)
@@ -19,6 +19,8 @@ path = '/home/datvt/live_examples/Webcam'
 
 f = open('out.txt', 'w+')
 
+t = time.time()
+
 for example in tqdm(os.listdir(path)):
     imgs = sorted(os.listdir(os.path.join(path, example)))
     X = [load_image(os.path.join(path, example, tmp)) for tmp in imgs[:8]]
@@ -26,3 +28,5 @@ for example in tqdm(os.listdir(path)):
     X = torch.Tensor(X)
     label = trainer.predict(X)[0]
     f.write(f'{label} {example}\n')
+
+print(f'{time.time() - t} seconds')
