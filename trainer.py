@@ -17,6 +17,7 @@ class Solver():
         else: 
             self.device = torch.device('cpu')
         self.log = SummaryWriter('log')
+        self.gpu = gpu
 
     def verbose(self,msg):
         print('[INFO]',msg)
@@ -49,7 +50,10 @@ class Trainer(Solver):
     
     def set_model(self):
         if self.model_path:
-            self.model = torch.load(self.model_path).to(self.device)
+            if torch.cuda.is_available() and self.gpu:
+                self.model = torch.load(self.model_path).to(self.device)
+            else: 
+                self.model = torch.load(self.model_path, map_location='cpu')
         else:    
             self.model = CNN3D().to(self.device)
         self.opt = torch.optim.Adam(self.model.parameters(), lr = 0.001, betas=[0.9, 0.99], weight_decay=0.00005)

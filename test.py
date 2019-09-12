@@ -8,14 +8,15 @@ import cv2
 import os
 from tqdm import tqdm
 import time 
+
 gpu = False
 
-model_path = '/home/datvt/liveness/result/init/model_epoch40'
+model_path = 'result/model_epoch40'
 trainer = Trainer('data', model_path, gpu)
 trainer.set_model()
 
 
-path = '/home/datvt/live_examples/Webcam'
+path = '../live_examples/Webcam'
 
 f = open('out.txt', 'w+')
 
