@@ -1,95 +1,53 @@
-0 real2__2_left
-1 fake__2
-1 fake__2_up
-0 real__3_up
-0 real__2_down
-0 real__4_right
-0 fake__4
-1 fake__0_down
-0 fake__3
-0 real__2_up
-0 fake__1_down
-0 fake__4_left
-0 real__0_right
-0 real__3_down
-0 fake2__2_down
-0 real__2_right
-0 fake__3_up
-0 real2__3_left
-0 real__3
-0 real__4
-0 real__1_left
-0 real__4_down
-0 fake__3_left
-0 fake2__0
-0 fake2__2_up
-0 real2__3_up
-0 real2__1_down
-0 real2__4_left
-0 real__2
-0 fake2__1
-0 fake2__0_left
-0 fake2__1_left
-0 real2__2
-0 real2__2_up
-0 real2__5
-0 real2__5_left
-0 real__3_right
-0 real2__0_down
-0 real__1_right
-1 fake__2_left
-0 real2__4
-0 real2__3
-0 real__0_left
-0 real2__1_up
-0 fake__1
-0 fake__4_down
-0 fake__1_left
-0 fake__4_right
-0 real__3_left
-0 fake2__2_left
-0 real2__5_up
-1 fake__0
-0 real2__4_right
-0 real2__3_down
-0 fake2__0_up
-0 real2__0_right
-0 real2__2_down
-0 real2__4_up
-1 fake__2_right
-1 fake2__2_right
-1 fake2__1_up
-0 real2__0_up
-0 fake2__0_right
-0 fake__0_right
-0 real__2_left
-1 fake__0_left
-0 real2__2_right
-0 real__1_up
-0 fake2__1_down
-0 fake__4_up
-0 real2__0_left
-0 real__0
-0 real2__5_right
-0 real2__5_down
-0 fake2__2
-1 fake__2_down
-0 fake__0_up
-0 real__0_down
-0 real__1
-0 real__4_up
-0 real__4_left
-0 real__1_down
-1 fake2__1_right
-1 fake__1_right
-0 real2__1
-0 real2__3_right
-0 fake__1_up
-0 fake__3_down
-0 real__0_up
-0 real2__4_down
-0 real2__1_left
-0 real2__1_right
-1 fake__3_right
-0 fake2__0_down
-0 real2__0
+[0, 0] fake2__0_down
+[0, 0] fake__4_up
+[0, 0] real__0_down
+[1, 1] fake2__1_right
+[0, 0] real__1_right
+[0, 0] real__3_down
+[0, 0] real__4_up
+[0, 0] real2__2_right
+[0, 0] real__1_down
+[0, 0] real__0_right
+[0, 0] real2__2_left
+[0, 0] real2__0_down
+[0, 0] real2__5_right
+[0, 0] real2__4
+[0, 0] fake2__1_down
+[0, 0] real2__0
+[1, 1] fake__1_right
+[0, 0] real__0
+[0, 0] fake__1_left
+[1, 1] fake__2
+[0, 0] real__0_up
+[0, 0] real2__0_left
+[0, 0] fake2__0
+[0, 0] real2__5_down
+[0, 0] real2__4_right
+[0, 0] real2__1
+[0, 0] fake__4_right
+[0, 0] real2__3
+[0, 0] real__1_left
+[0, 0] real2__3_down
+[0, 0] real__2_right
+[1, 1] fake2__2_right
+[0, 0] real__3
+[0, 0] real__2_left
+[0, 0] fake2__0_left
+[0, 0] real2__5
+[0, 0] fake2__2
+[0, 0] fake2__2_down
+[0, 0] real2__2
+[0, 0] real2__5_left
+[0, 0] fake2__2_left
+[0, 0] real__4_left
+[0, 0] real2__3_up
+[0, 0] real2__1_right
+[0, 0] real__3_up
+[0, 0] fake__3_down
+[0, 0] real2__0_right
+[0, 0] real__4_right
+[1, 1] fake__2_right
+[0, 0] real__1
+[0, 0] fake__0_right
+[0, 0] fake__4
+[0, 0] fake2__0_up

@@ -9,9 +9,9 @@ import os
 from tqdm import tqdm
 import time 
 
-gpu = False
+gpu = True
 
-model_path = 'result/model_epoch40'
+model_path = 'result/init/model_epoch40'
 trainer = Trainer('data', model_path, gpu)
 trainer.set_model()
 
@@ -25,7 +25,7 @@ t = time.time()
 for example in tqdm(os.listdir(path)):
     imgs = sorted(os.listdir(os.path.join(path, example)))
     X = [load_image(os.path.join(path, example, tmp)) for tmp in imgs[:8]]
-    X = np.array([X]).transpose(0,4,1,2,3)
+    X = np.array([X, X]).transpose(0,4,1,2,3)
     X = torch.Tensor(X)
     label = trainer.predict(X)[0]
     f.write(f'{label} {example}\n')

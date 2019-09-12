@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from tensorboardX import SummaryWriter
 from dataset import LoadDataset
 import math
+from utils import softmax
 import os
 
 GRAD_CLIP = 5
@@ -66,7 +67,7 @@ class Trainer(Solver):
         X = X.to(device = self.device,dtype=torch.float32)
         _, _, input = self.model(X)
         pred = torch.max(input, 1)[1]
-        return pred.tolist()
+        return pred.tolist(), softmax(np.array(input.tolist()))
 
     def exec(self):
         #train
@@ -322,6 +323,8 @@ class Finetuner(Solver):
         if np.mean(all_loss) < self.best_val:
             self.best_val = np.mean(all_loss)
             if not os.path.exists('result'):
+                os.mkdir('result')
+            if not os.path.exists('result/final'):
                 os.mkdir('result/final')
             torch.save(self.model, os.path.join('result/final','model_epoch' + str(self.epoch)))
         
