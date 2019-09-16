@@ -150,12 +150,12 @@ class Finetuner(Solver):
         self.model_path = model_path 
 
         self.best_val = 20.0
-        self.max_epoch = 20
+        self.max_epoch = 50
         self.batch_size = 10
 
         self.domains = ['HS', 'HW', 'IP', '5s', 'ZTE']
         self.num_domains = len(self.domains)
-        self.lmda = 0.5
+        self.lmda = 0.02
 
     def load_data(self):
         self.verbose('Load data from: ' + self.data_path)
@@ -313,7 +313,7 @@ class Finetuner(Solver):
                 
                 
                 all_cross_entropy_loss.append(cross_entropy_loss.tolist())
-                all_generalization_loss.append(generalization_loss_fc1.tolist() + generalization_loss_fc2.tolist())
+                all_generalization_loss.append(self.lmda*(generalization_loss_fc1.tolist() + generalization_loss_fc2.tolist()))
                 all_loss.append(loss.tolist())
                 
                 fc1_tensor_all, fc2_tensor_all, input_tensor_all, domain_tensor_all, y_tensor_all = [], [], [], [], []
@@ -386,7 +386,7 @@ class Tester(Solver):
 
                 step += 1
         
-        # print(sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/len(all_pred))
+        print(sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/len(all_pred))
         if self.extract_feature:
             npar = np.array([all_fc1, all_fc2, all_true])
             np.save('result/extract.npy', npar)
