@@ -7,6 +7,7 @@ from tensorboardX import SummaryWriter
 from dataset import LoadDataset
 import math
 from utils import softmax
+import gc
 import os
 
 GRAD_CLIP = 5
@@ -36,7 +37,7 @@ class Trainer(Solver):
         self.model_path = model_path
 
         self.data_path = data_path
-        self.batch_size = 16
+        self.batch_size = 10
 
         self.epoch = 0
         self.best_val = 1e6
@@ -100,6 +101,8 @@ class Trainer(Solver):
 
                 step += 1
 
+            del X_batch, y_batch
+
             # log
             self.log.add_scalars('acc', {'train': sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/ len(all_pred)}, self.epoch)
             self.log.add_scalars('loss', {'train': np.mean(all_loss)}, self.epoch)
@@ -116,11 +119,11 @@ class Trainer(Solver):
         all_loss = []
         step = 0
         for X_batch, y_batch, _ in self.dev_set:
-            self.progress('Valid step - ' + str(step) + '/' + str(len(self.train_set)))
+            self.progress('Valid step - ' + str(step) + '/' + str(len(self.dev_set)))
             X_batch = X_batch.to(device = self.device,dtype=torch.float32)
             y_batch = y_batch.to(device = self.device)
             _, _, input = self.model(X_batch)
-            self.opt.zero_grad()
+            
             loss = self.cross_entropy_loss(input, y_batch)
 
             pred = torch.max(input, 1)[1]
@@ -130,14 +133,19 @@ class Trainer(Solver):
             all_loss.append(loss.tolist())
 
             step += 1
+            
+            del input, pred, loss
 
         if np.mean(all_loss) < self.best_val:
             self.best_val = np.mean(all_loss)
             if not os.path.exists('result'):
+                os.mkdir('result')
+            if not os.path.exists('result/init'):
                 os.mkdir('result/init')
             torch.save(self.model, os.path.join('result/init','model_epoch' + str(self.epoch)))
         
         # log
+
         self.log.add_scalars('acc', {'dev': sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/ len(all_pred)}, self.epoch)
         self.log.add_scalars('loss', {'dev': np.mean(all_loss)}, self.epoch)
 
