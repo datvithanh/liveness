@@ -29,11 +29,12 @@ class Solver():
 
 
 class Trainer(Solver):
-    def __init__(self, data_path, model_path='', gpu = True):
+    def __init__(self, data_path, model_path='', gpu = True, tag=''):
         # TODO: move this to argument or config
         # self.device = torch.device('cpu')
         super(Trainer, self).__init__(gpu)
-
+        
+        self.tag = tag 
         self.model_path = model_path
 
         self.data_path = data_path
@@ -138,11 +139,8 @@ class Trainer(Solver):
 
         if np.mean(all_loss) < self.best_val:
             self.best_val = np.mean(all_loss)
-            if not os.path.exists('result'):
-                os.mkdir('result')
-            if not os.path.exists('result/init'):
-                os.mkdir('result/init')
-            torch.save(self.model, os.path.join('result/init','model_epoch' + str(self.epoch)))
+            os.makedirs(os.path.join('result', self.tag, 'init'))
+            torch.save(self.model, os.path.join('result', self.tag, 'init', 'model_epoch' + str(self.epoch)))
         
         # log
 
