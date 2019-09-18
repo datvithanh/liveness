@@ -1,5 +1,5 @@
 import argparse
-from trainer import Trainer, Finetuner, Tester
+from src.trainer import Trainer, Finetuner, Tester
 
 parser = argparse.ArgumentParser('Training anti-proofing model')
 
