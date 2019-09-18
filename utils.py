@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+import os
+
 def load_image(path):
     tmp = cv2.imread(path)
     return cv2.resize(tmp, (int(128), int(128)))
