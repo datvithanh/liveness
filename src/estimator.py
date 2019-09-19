@@ -21,7 +21,10 @@ class Estimator():
         self.config = config
 
         self.epoch = params.epoch
-        self.max_epoch = config['estimator']['']
+        self.max_epoch = config['estimator']['max_epoch']
+
+        self.domains = config['estimator']['domains']
+        self.num_domains = len(self.domains)
 
         self.log = SummaryWriter(os.path.join('log', self.config['experiment']))
 
@@ -110,7 +113,7 @@ class Estimator():
 
             step = 0
             for X_batch, y_batch, domain_batch in self.train_set:
-                self.progress(f'Epoch {self.params.mode} step - {step} / {len(self.train_set)}')
+                self.progress(f'Training step - {step} / {len(self.train_set)}')
 
                 fc1, fc2, input = self.model(X_batch)
                 pred = torch.max(input, 1)[1]
@@ -119,7 +122,10 @@ class Estimator():
                 all_true += y_batch.tolist()
 
                 if self.params.mode == 'training':
+                    self.opt.zero_grad()
                     loss = self.cross_entropy_loss(input, y_batch)
+                    all_loss.append(loss.tolist())
+
                     loss.backward()
                     self.opt.step()
 
@@ -138,12 +144,10 @@ class Estimator():
                         generalization_loss_fc2 = self.generalization_loss(torch.cat(fc2_tensor_all, dim = 0), torch.cat(domain_tensor_all, dim = 0))
 
                         self.opt.zero_grad()
-
                         loss = cross_entropy_loss + self.config['estimator']['lambda']*(generalization_loss_fc1 + generalization_loss_fc2)
                         
-                        
                         all_cross_entropy_loss.append(cross_entropy_loss.tolist())
-                        all_generalization_loss.append(generalization_loss_fc1.tolist() + generalization_loss_fc2.tolist())
+                        all_generalization_loss.append(self.config['estimator']['lambda']*(generalization_loss_fc1.tolist() + generalization_loss_fc2.tolist()))
                         all_loss.append(loss.tolist())
                         
                         loss.backward()
@@ -157,12 +161,75 @@ class Estimator():
             self.log.add_scalars('acc', {'train': sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/ len(all_pred)}, self.epoch)
             self.log.add_scalars('loss', {'train': np.mean(all_loss)}, self.epoch)
 
-            self.log.add_scalars('acc-finetune', {'train': sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/ len(all_pred)}, self.epoch)
-            self.log.add_scalars('loss-finetune', {'train-all': np.mean(all_loss)}, self.epoch)
-            self.log.add_scalars('loss-finetune', {'train-cel': np.mean(all_cross_entropy_loss)}, self.epoch)
-            self.log.add_scalars('loss-finetune', {'train-gen': np.mean(all_generalization_loss)}, self.epoch)
+            if self.params.mode == 'finetuning':
+                self.log.add_scalars('loss', {'train-cel': np.mean(all_cross_entropy_loss)}, self.epoch)
+                self.log.add_scalars('loss', {'train-gen': np.mean(all_generalization_loss)}, self.epoch)
 
             self.eval()
             self.epoch += 1
                 
+    def eval(self):
+        self.model.eval()
 
+        all_pred, all_true, all_loss = [], [], []
+        if self.params.mode == 'finetuning':
+            all_cross_entropy_loss, all_generalization_loss = [], []
+            fc1_tensor_all, fc2_tensor_all, input_tensor_all, domain_tensor_all, y_tensor_all = [], [], [], [], []
+        step = 0
+
+        for X_batch, y_batch, domain_batch in self.train_set:
+            self.progress(f'Eval step - {step} / {len(self.train_set)}')
+
+            fc1, fc2, input = self.model(X_batch)
+            pred = torch.max(input, 1)[1]
+
+            all_pred += pred.tolist()
+            all_true += y_batch.tolist()
+
+            if self.params.mode == 'training':
+                loss = self.cross_entropy_loss(input, y_batch)
+                all_loss.append(loss.tolist())
+
+                del loss
+            else:
+                fc1_tensor_all.append(fc1)
+                fc2_tensor_all.append(fc2)
+                domain_tensor_all.append(domain_batch) 
+                input_tensor_all.append(input)
+                y_tensor_all.append(y_batch)
+
+                #TODO: move number of batch to calculate loss to config
+                if len(fc1_tensor_all) == 50:
+                    cross_entropy_loss = self.cross_entropy_loss(torch.cat(input_tensor_all, dim = 0), torch.cat(y_tensor_all, dim = 0))
+                    generalization_loss_fc1 = self.generalization_loss(torch.cat(fc1_tensor_all, dim = 0), torch.cat(domain_tensor_all, dim = 0))
+                    generalization_loss_fc2 = self.generalization_loss(torch.cat(fc2_tensor_all, dim = 0), torch.cat(domain_tensor_all, dim = 0))
+
+                    loss = cross_entropy_loss + self.config['estimator']['lambda']*(generalization_loss_fc1 + generalization_loss_fc2)
+                    
+                    all_cross_entropy_loss.append(cross_entropy_loss.tolist())
+                    all_generalization_loss.append(self.config['estimator']['lambda']*(generalization_loss_fc1.tolist() + generalization_loss_fc2.tolist()))
+                    all_loss.append(loss.tolist())
+                    
+                    fc1_tensor_all, fc2_tensor_all, input_tensor_all, domain_tensor_all, y_tensor_all = [], [], [], [], []
+                    del cross_entropy_loss, generalization_loss_fc1, generalization_loss_fc2, loss
+            
+            del fc1, fc2, input, pred
+
+            step += 1
+
+        
+        if np.mean(all_loss) < self.best_val:
+            ckppath = os.path.join('result', self.config['experiment'])
+            self.best_val = np.mean(all_loss)
+            os.makedirs(ckppath)
+            torch.save(self.model, os.path.join(ckppath, 'model_epoch' + str(self.epoch)))
+
+        
+        self.log.add_scalars('acc', {'dev': sum([tmp1 == tmp2 for tmp1, tmp2 in zip(all_pred, all_true)])/ len(all_pred)}, self.epoch)
+        self.log.add_scalars('loss', {'dev': np.mean(all_loss)}, self.epoch)
+
+        if self.params.mode == 'finetuning':
+            self.log.add_scalars('loss', {'dev-cel': np.mean(all_cross_entropy_loss)}, self.epoch)
+            self.log.add_scalars('loss', {'dev-gen': np.mean(all_generalization_loss)}, self.epoch)
+
+        self.model.train()
