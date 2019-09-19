@@ -7,9 +7,9 @@ import numpy as np
 from utils import load_image
 
 class TrainingDataset(Dataset):
-    def __init__(self, file_path, dataset):
+    def __init__(self, file_path):
         self.root = file_path
-        self.table = pd.read_csv(os.path.join(file_path, dataset + '.csv'))
+        self.table = pd.read_csv(os.path.join(file_path))
         
         X = self.table['image'].tolist()
         Y = self.table['label'].tolist()
@@ -36,13 +36,15 @@ class TrainingDataset(Dataset):
         return len(self.Y)
 
 
-def LoadDataset(split, data_path, batch_size):
+def LoadDataset(split, data_path, color_channel, n_jobs, train_set, batch_size, dev_set, dev_batch_size):
     if split == 'train':
         shuffle = True
-        ds = TrainingDataset(data_path, split)
+        dataset_file = train_set + '.csv '
     else: 
         shuffle = False
-        ds = TrainingDataset(data_path, split)
+        dataset_file = dev_set + '.csv'
+        
+    ds = TrainingDataset(os.path.join(data_path, dataset_file))
 
     # TODO: load below config as params
-    return  DataLoader(ds, batch_size=batch_size, shuffle=shuffle,drop_last=False,num_workers=8)
+    return  DataLoader(ds, batch_size=batch_size, shuffle=shuffle, drop_last=False, num_workers=8)

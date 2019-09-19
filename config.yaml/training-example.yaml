@@ -1,0 +1,26 @@
+experiment: 'training-ycbcr'
+
+optimizer:
+  learning_rate: 0.001
+  betas: [0.9, 0.99]
+  weight_decay: 0.00005
+
+estimator:
+  data_path: 'data'
+  max_epoch: 50 
+
+  #rgb ycbcr hsv
+  color_channel: 'ycbcr'
+
+  #Subprocesses used for torch Dataloader
+  n_jobs: 8     
+
+  train_set: 'train'
+  batch_size: 10
+
+  dev_set: 'dev'
+  dev_batch_size: 10
+
+  #configs only used in finetuning steps
+  lambda: 0.02
+  domains: ['HS', 'HW', 'IP', '5s', 'ZTE']

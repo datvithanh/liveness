@@ -1,10 +1,10 @@
 import torch
 import cv2
 import numpy as np
-from model import CNN3D
-import torch.nn.functional as F
 from tensorboardX import SummaryWriter
-from dataset import LoadDataset
+import torch.nn.functional as F
+from src.model import CNN3D
+from src.dataset import LoadDataset
 import math
 from utils import softmax
 import gc
