@@ -38,7 +38,7 @@ class Trainer(Solver):
         self.model_path = model_path
 
         self.data_path = data_path
-        self.batch_size = 10
+        self.batch_size = 8
 
         self.epoch = 0
         self.best_val = 1e6
@@ -137,9 +137,10 @@ class Trainer(Solver):
             
             del input, pred, loss
 
-        if np.mean(all_loss) < self.best_val:
+        #if np.mean(all_loss) < self.best_val:
+        if True:
             self.best_val = np.mean(all_loss)
-            os.makedirs(os.path.join('result', self.tag, 'init'))
+            os.makedirs(os.path.join('result', self.tag, 'init'), exist_ok=True)
             torch.save(self.model, os.path.join('result', self.tag, 'init', 'model_epoch' + str(self.epoch)))
         
         # log

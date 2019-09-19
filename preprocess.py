@@ -6,6 +6,7 @@ from random import shuffle
 parser = argparse.ArgumentParser(description='Preprocess program for the dataset.')
 parser.add_argument('--data_path', type=str, help='Path to the dataset')
 parser.add_argument('--test', action='store_true', help='prepare test set')
+parser.add_argument('--outdir', type=str, help='path to store ds metadata')
 
 params = parser.parse_args()
 
@@ -36,8 +37,8 @@ for k, v in subjects.items():
                 valid_images.append(image_paths)
                 valid_labels.append(data_point)
 
-if not os.path.exists('data'):
-    os.mkdir('data')
+os.makedirs(params.outdir, exist_ok=True)
+
 
 total = [[tmp1, tmp2] for tmp1, tmp2 in zip(valid_images, valid_labels)]
 
@@ -51,5 +52,5 @@ valid_size = len(valid_images)//10
 train = pd.DataFrame.from_dict({'image': images, 'label': labels})
 valid = pd.DataFrame.from_dict({'image': valid_images[:valid_size],'label': valid_labels[:valid_size]})
 
-train.to_csv('data/train.csv')
-valid.to_csv('data/valid.csv')
+train.to_csv(os.path.join(params.outdir, 'train.csv'))
+valid.to_csv(os.path.join(params.outdir, 'valid.csv'))
