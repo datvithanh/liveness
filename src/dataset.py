@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 import pandas as pd
 import torch
 import numpy as np
-from utils import load_image
+from src.utils import load_image
 
 class TrainingDataset(Dataset):
     def __init__(self, file_path, domains, color_channel):

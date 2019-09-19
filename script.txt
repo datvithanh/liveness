@@ -1,5 +1,0 @@
-preprocess: python preprocess.py --data_path /home/common_gpu0/corpora/vision/liveness/rose/images
-test | extract_feature: python main.py --data_path data --mode test --model_path /home/datvt/liveness/result/init/model_epoch40 --extract_feature
-train: python main.py --data_path data --mode train
-finetune:
-

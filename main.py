@@ -1,29 +1,19 @@
 import argparse
-from src.trainer import Trainer, Finetuner, Tester
+import yaml
+from src.estimator import Estimator
 
-parser = argparse.ArgumentParser('Training anti-proofing model')
 
-parser.add_argument('--data_path', type=str, help='Path to dataset')
-parser.add_argument('--tag', type=str, help='tag of version')
-parser.add_argument('--mode', type=str, help='Finetuning for not')
-parser.add_argument('--extract_feature', action='store_true', help='extract feature on test mode')
-parser.add_argument('--gpu', action='store_true', help='use gpu or not')
-parser.add_argument('--model_path', type=str, default='', help='Path to trained model')
+parser = argparse.ArgumentParser(description='Liveness estimator')
+
+parser.add_argument('--config', type=str, help='Path to config of liveness')
+parser.add_argument('--cuda', action='store_true', help='Use cuda for training/finetuning or not')
+parser.add_argument('--epoch', default=0, type=int, help='Epoch to continue training/finetuning')
+parser.add_argument('--model_path', default='', type=str, help='Path to pretrained model')
+parser.add_argument('--mode', default='training', type=str, help='Mode: either training or finetuning')
+
 params = parser.parse_args()
 
-if params.mode == 'test':
-    trainer = Tester(params.data_path, params.model_path, params.extract_feature)
-    trainer.load_data()
-    trainer.set_model()
-    trainer.exec()
-else:
-    if params.mode == 'finetuning':
-        trainer = Finetuner(params.data_path, params.model_path)
-        trainer.load_data()
-        trainer.set_model()
-        trainer.exec()
-    else:    
-        trainer = Trainer(params.data_path, params.model_path, params.gpu, params.tag)
-        trainer.load_data()
-        trainer.set_model()
-        trainer.exec()
+config = yaml.load(open(params.config, 'r'))
+
+est = Estimator(params, config)
+est.exec()
