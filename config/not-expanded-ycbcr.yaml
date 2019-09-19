@@ -1,4 +1,4 @@
-experiment: 'training-ycbcr'
+experiment: 'training-not-expanded-ycbcr'
 
 optimizer:
   learning_rate: 0.001
@@ -6,8 +6,11 @@ optimizer:
   weight_decay: 0.00005
 
 estimator:
-  data_path: 'data'
   max_epoch: 50 
+  lambda: 0.02
+
+data:
+  data_path: 'data/not_expanded'
 
   #rgb ycbcr hsv
   color_channel: 'ycbcr'
@@ -22,5 +25,4 @@ estimator:
   dev_batch_size: 10
 
   #configs only used in finetuning steps
-  lambda: 0.02
   domains: ['HS', 'HW', 'IP', '5s', 'ZTE']

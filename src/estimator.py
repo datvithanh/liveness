@@ -23,8 +23,9 @@ class Estimator():
         self.epoch = params.epoch
         self.max_epoch = config['estimator']['max_epoch']
 
-        self.domains = config['estimator']['domains']
+        self.domains = config['data']['domains']
         self.num_domains = len(self.domains)
+        self.best_eval_score = 1e6
 
         self.log = SummaryWriter(os.path.join('log', self.config['experiment']))
 
@@ -38,9 +39,9 @@ class Estimator():
         print(msg + '                              ', end='\r')
 
     def load_data(self):
-        self.verbose('Load data from: ' + self.config['estimator']['data_path'])
-        setattr(self, 'train_set', LoadDataset('train', **self.config['estimator']))
-        setattr(self, 'dev_set', LoadDataset('dev', **self.config['estimator']))
+        self.verbose('Load data from: ' + self.config['data']['data_path'])
+        setattr(self, 'train_set', LoadDataset('train', cuda=(self.device.type=='cuda'), **self.config['data']))
+        setattr(self, 'dev_set', LoadDataset('dev', cuda=(self.device.type=='cuda'),**self.config['data']))
 
     def set_model(self):
         if self.params.model_path:
@@ -53,8 +54,8 @@ class Estimator():
 
         if self.params.mode == 'finetuning':
             self.model.freeze()
-        
-        self.opt = torch.optim.Adam(self.model.parameters(), lr = self.config['optimizer']['learning_rate'], betas=self.config['optimizer']['learning_rate'], weight_decay=self.config['optimizer']['weight_decay'])
+       
+        self.opt = torch.optim.Adam(self.model.parameters(), lr = self.config['optimizer']['learning_rate'], betas=self.config['optimizer']['betas'], weight_decay=self.config['optimizer']['weight_decay'])
 
         self.cross_entropy_loss = torch.nn.CrossEntropyLoss(reduce='mean')
     
@@ -114,6 +115,8 @@ class Estimator():
             step = 0
             for X_batch, y_batch, domain_batch in self.train_set:
                 self.progress(f'Training step - {step} / {len(self.train_set)}')
+                X_batch = X_batch.to(device = self.device,dtype=torch.float32)
+                y_batch = y_batch.to(device = self.device)
 
                 fc1, fc2, input = self.model(X_batch)
                 pred = torch.max(input, 1)[1]
@@ -179,6 +182,8 @@ class Estimator():
 
         for X_batch, y_batch, domain_batch in self.train_set:
             self.progress(f'Eval step - {step} / {len(self.train_set)}')
+            X_batch = X_batch.to(device = self.device,dtype=torch.float32)
+            y_batch = y_batch.to(device = self.device)
 
             fc1, fc2, input = self.model(X_batch)
             pred = torch.max(input, 1)[1]
@@ -218,10 +223,10 @@ class Estimator():
             step += 1
 
         
-        if np.mean(all_loss) < self.best_val:
+        if np.mean(all_loss) < self.best_eval_score:
             ckppath = os.path.join('result', self.config['experiment'])
-            self.best_val = np.mean(all_loss)
-            os.makedirs(ckppath)
+            self.best_eval_score = np.mean(all_loss)
+            os.makedirs(ckppath, exist_ok=True)
             torch.save(self.model, os.path.join(ckppath, 'model_epoch' + str(self.epoch)))
 
         
