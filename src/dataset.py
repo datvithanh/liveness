@@ -36,13 +36,15 @@ class TrainingDataset(Dataset):
         return len(self.Y)
 
 
-def LoadDataset(split, data_path, batch_size):
+def LoadDataset(split, data_path, color_channel, n_jobs, train_set, batch_size, dev_set, dev_batch_size):
     if split == 'train':
         shuffle = True
-        ds = TrainingDataset(os.path.join(data_path, split))
+        dataset_file = train_set + '.csv '
     else: 
         shuffle = False
-        ds = TrainingDataset(os.path.join(data_path, split))
+        dataset_file = dev_set + '.csv'
+        
+    ds = TrainingDataset(os.path.join(data_path, dataset_file))
 
     # TODO: load below config as params
-    return  DataLoader(ds, batch_size=batch_size, shuffle=True,drop_last=False,num_workers=8)
+    return  DataLoader(ds, batch_size=batch_size, shuffle=shuffle, drop_last=False, num_workers=8)

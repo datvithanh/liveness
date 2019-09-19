@@ -1,0 +1,20 @@
+experiment: 'finetuning-rgb'
+
+optimizer:
+  learning_rate: 0.0001
+  betas: [0.9, 0.99]
+  weight_decay: 0.00005
+
+estimator:
+  data_path: 'data'
+
+  #rgb ycbcr hsv
+  color_channel: 'rgb'
+
+  n_jobs: 8     
+
+  train_set: 'train'
+  batch_size: 10
+
+  dev_set: 'dev'
+  dev_batch_size: 10
